@@ -294,9 +294,13 @@ canvas#game {
   opacity: 0;
   pointer-events: none;
 }
-/* keep clear of the bottom-corner mode buttons on narrow phones */
-.bottombar { gap: 10px; }
-.bottombar .roundbtn.small { width: 49px; height: 49px; font-size: 21px; }
+/* Play-mode tools sit on their own row ABOVE the bottom-corner Bonk!/Wash
+   buttons, so nothing overlaps regardless of screen width. */
+.bottombar {
+  gap: 10px;
+  bottom: calc(var(--safe-b) + 90px);
+}
+.bottombar .roundbtn.small { width: 52px; height: 52px; font-size: 22px; }
 .roundbtn.tint-blue { background: linear-gradient(180deg, #e3f6ff, #a9dcf5 55%, #6fbfe8); }
 .roundbtn {
   position: relative;
