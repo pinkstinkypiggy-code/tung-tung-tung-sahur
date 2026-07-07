@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2a1454" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tung Sahur" />
+  <title>Tung Tung Tung Sahur</title>
+  <meta name="description" content="Poke him, drum on him, bonk him, wash him. Tung Tung Tung Sahur — the interactive meme." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥁</text></svg>" />
+</head>
+<body>
+  <div id="bg" aria-hidden="true">
+    <div class="rays"></div>
+    <div class="stars"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="sunglow"></div>
+  </div>
+
+  <div id="shaker">
+    <canvas id="game"></canvas>
+  </div>
+
+  <header class="topbar">
+    <h1 class="title"><span class="drum">🥁</span> Tung Tung Tung <em>Sahur</em> <span class="drum d2">🥁</span></h1>
+    <div class="subrow">
+      <button id="btn-combos" class="minichip">👊 Combos</button>
+      <button id="btn-info" class="minichip">? Help</button>
+    </div>
+  </header>
+
+  <button class="corner-mode tl active" data-mode="play" aria-label="Free play mode">👆<span>Play</span></button>
+  <button class="corner-mode tr" data-mode="jam" aria-label="Jam mode">🥁<span>Jam</span></button>
+  <button class="corner-mode bl" data-mode="bonk" aria-label="Bonk minigame">🎯<span>Bonk!</span></button>
+  <button class="corner-mode br" data-mode="wash" aria-label="Wash minigame">🫧<span>Wash</span></button>
+
+  <div id="hud" class="hud" hidden>
+    <span id="hud-main"></span>
+    <span id="hud-sub"></span>
+  </div>
+
+  <div id="hint" class="hint" role="status">👆 Poke him!</div>
+
+  <div id="banner" class="banner" hidden>
+    <p id="banner-text"></p>
+    <div class="banner-actions">
+      <button id="banner-action" class="chip"></button>
+      <button id="banner-close" class="chip ghost">Dismiss</button>
+    </div>
+  </div>
+
+  <nav class="bottombar" id="actionbar">
+    <button id="btn-weapon" class="roundbtn small tint-gold" aria-label="Switch weapon">
+      <span id="weapon-icon">🏏</span>
+    </button>
+    <button id="btn-dirty" class="roundbtn small tint-green" aria-label="Throw mud at him">🗑️</button>
+    <button id="btn-sponge" class="roundbtn small tint-blue" aria-label="Scrub him">🧽</button>
+    <button id="btn-mic" class="roundbtn small tint-pink muted" aria-label="Enable microphone">
+      <span id="mic-icon">🎤</span>
+    </button>
+  </nav>
+
+  <div id="sponge" aria-hidden="true">🧽</div>
+  <div id="fx" aria-hidden="true"></div>
+
+  <a class="credit" href="https://sketchfab.com/3d-models/tung-tung-tung-sahur-91ddd9079bd84019ba4a12e01d93a0d6" target="_blank" rel="noopener">Model: Eks.Art · CC BY 4.0</a>
+
+  <div id="result" class="modal" hidden>
+    <div class="modal-card result-card">
+      <div id="result-emoji" class="result-emoji">🏆</div>
+      <h2 id="result-title">Time's up!</h2>
+      <div id="result-score" class="result-score">0</div>
+      <p id="result-best" class="result-best"></p>
+      <div class="result-actions">
+        <button id="result-again" class="chip big">🔁 Again!</button>
+        <button id="result-close" class="chip ghost">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shop" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+      <button id="shop-close" class="modal-x" aria-label="Close">✕</button>
+      <h2 id="shop-title">🛒 Weapons</h2>
+      <p class="combo-tip">Earn ⭐ by poking, landing combos and playing Bonk! &amp; Wash. Spend them on serious hardware:</p>
+      <ul class="combo-list shop-list" id="shop-list"></ul>
+      <p class="combo-best">⭐ Balance: <b id="shop-balance">0</b></p>
+    </div>
+  </div>
+
+  <div id="combos" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="combos-title">
+      <button id="combos-close" class="modal-x" aria-label="Close">✕</button>
+      <h2 id="combos-title">👊 Combos</h2>
+      <p class="combo-tip">Poke fast to build a 🔥 chain — every hit in a chain is worth more. Land these secret sequences for MEGA points:</p>
+      <ul class="combo-list" id="combo-list"></ul>
+      <p class="combo-best">⭐ Best score: <b id="combos-best">0</b></p>
+    </div>
+  </div>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button id="modal-close" class="modal-x" aria-label="Close">✕</button>
+      <h2 id="modal-title">How to play</h2>
+      <ul class="howto">
+        <li>🎮 <b>Modes</b> — one in each corner of the screen. Tap to switch.</li>
+        <li>👆 <b>Play</b> — poke him for points; fast chains multiply your score. Your tools live at the bottom: weapon shop, mud, sponge, mic.</li>
+        <li>👊 <b>Combos</b> — land secret poke sequences for MEGA points.</li>
+        <li>🥁 <b>Jam</b> — he's the drum. Head = tak, belly = DUNG, legs = tek.</li>
+        <li>🎯 <b>Bonk!</b> — whack the targets before they move. 30 seconds.</li>
+        <li>🫧 <b>Wash</b> — scrub him clean before the falling trash wins.</li>
+        <li>🏏 <b>Weapons</b> — spend ⭐ in the shop; 5 to collect, one is legendary.</li>
+        <li>🎤 <b>Mic</b> — turn it on and he'll repeat what you say.</li>
+      </ul>
+      <h3>Credits</h3>
+      <p class="fineprint">
+        3D model “Tung Tung Tung Sahur” by
+        <a href="https://sketchfab.com/3d-models/tung-tung-tung-sahur-91ddd9079bd84019ba4a12e01d93a0d6" target="_blank" rel="noopener">Eks.Art</a>,
+        licensed
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.
+        Your voice never leaves your phone — nothing is recorded or uploaded.
+      </p>
+      <p class="soon">✨ More characters coming soon…</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

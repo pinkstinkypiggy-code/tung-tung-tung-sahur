@@ -1,0 +1,4 @@
+Save the Sketchfab download as tung-tung-tung-sahur.glb in this folder.
+Model page: https://sketchfab.com/3d-models/tung-tung-tung-sahur-91ddd9079bd84019ba4a12e01d93a0d6
+License: CC BY 4.0 (attribution is already wired into the app UI).
+Until then the app uses its built-in procedural character.
