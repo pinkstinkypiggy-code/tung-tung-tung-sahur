@@ -387,19 +387,6 @@ body.washing canvas#game { cursor: none; }
   100% { opacity: 0; transform: translate(var(--cx), var(--cy)) rotate(var(--cr)); }
 }
 
-/* ================= attribution ================= */
-.credit {
-  position: absolute;
-  bottom: calc(var(--safe-b) + 6px);
-  left: 10px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: rgba(58, 33, 21, .75);
-  text-decoration: none;
-  z-index: 4;
-}
-.credit:hover { text-decoration: underline; }
-
 /* ================= banner ================= */
 .banner {
   position: absolute;
