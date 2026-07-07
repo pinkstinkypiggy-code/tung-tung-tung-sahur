@@ -41,32 +41,37 @@ export async function createCharacter(scene) {
   let glbMesh = null;
 
   try {
-    const res = await fetch(GLB_URL, { method: 'HEAD' });
-    const type = res.headers.get('content-type') || '';
-    if (res.ok && !type.includes('text/html')) {
-      const gltf = await new GLTFLoader().loadAsync(GLB_URL);
-      model = gltf.scene;
-      // Normalize: stand on y=0, TARGET_HEIGHT tall, centered
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      const s = TARGET_HEIGHT / size.y;
-      model.scale.setScalar(s);
-      box.setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      model.position.x -= center.x;
-      model.position.z -= center.z;
-      model.position.y -= box.min.y;
-      model.traverse((o) => {
-        if (o.isMesh) glbMesh = o;
-      });
-      if (gltf.animations && gltf.animations.length) {
-        mixer = new THREE.AnimationMixer(model);
-        mixer.clipAction(gltf.animations[0]).play();
-      }
-      console.log('[character] loaded GLB model');
+    // Load the GLB directly (no HEAD pre-check — iOS Safari can hang on HEAD
+    // requests, which left mobile stuck on the placeholder). If the URL 404s or
+    // returns HTML, loadAsync throws and we fall back to the built-in character.
+    const gltf = await new GLTFLoader().loadAsync(GLB_URL);
+    const candidate = gltf.scene;
+    // Sanity check: make sure it actually contains a renderable mesh.
+    let hasMesh = false;
+    candidate.traverse((o) => {
+      if (o.isMesh) { hasMesh = true; glbMesh = o; }
+    });
+    if (!hasMesh) throw new Error('GLB has no mesh');
+    model = candidate;
+    // Normalize: stand on y=0, TARGET_HEIGHT tall, centered
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const s = TARGET_HEIGHT / size.y;
+    model.scale.setScalar(s);
+    box.setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.x -= center.x;
+    model.position.z -= center.z;
+    model.position.y -= box.min.y;
+    if (gltf.animations && gltf.animations.length) {
+      mixer = new THREE.AnimationMixer(model);
+      mixer.clipAction(gltf.animations[0]).play();
     }
+    console.log('[character] loaded GLB model');
   } catch (e) {
-    console.log('[character] no GLB found, using built-in character');
+    console.warn('[character] GLB load failed, using built-in character:', e?.message || e);
+    model = null;
+    glbMesh = null;
   }
 
   if (!model) {
