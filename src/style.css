@@ -301,6 +301,55 @@ canvas#game {
   50% { transform: translateX(-50%) translateY(-8px) rotate(1.2deg); }
 }
 
+/* ================= mic prompt bubble (over Tung) ================= */
+.mic-prompt {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(180deg, #fff4fa, #ffd8ec);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1.15;
+  text-align: left;
+  padding: 12px 20px 12px 16px;
+  border-radius: 22px;
+  border: 3px solid var(--ink);
+  box-shadow: 0 6px 0 rgba(58, 33, 21, .85), 0 12px 26px rgba(40, 10, 60, .4);
+  pointer-events: none;
+  z-index: 5;
+  white-space: nowrap;
+  animation: micfloat 2.2s ease-in-out infinite;
+}
+.mic-prompt[hidden] { display: none; }
+/* little speech-bubble tail pointing down at Tung */
+.mic-prompt::after {
+  content: '';
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 14px solid var(--ink);
+}
+.mic-prompt-icon {
+  font-size: 26px;
+  animation: micwiggle .5s ease-in-out infinite alternate;
+}
+@keyframes micfloat {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1deg); }
+  50% { transform: translateX(-50%) translateY(-7px) rotate(1deg); }
+}
+@keyframes micwiggle {
+  from { transform: rotate(-12deg) scale(1); }
+  to { transform: rotate(10deg) scale(1.12); }
+}
+
 /* ================= candy buttons ================= */
 .bottombar {
   position: absolute;

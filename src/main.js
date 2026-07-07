@@ -50,7 +50,8 @@ async function handleMicPress() {
       voice.setMuted(false);
       ui.setMicOn(true);
       ui.hideBanner();
-      ui.setHint('🎤 Say something!');
+      ui.setHint(null);
+      ui.setMicPrompt(true);
     } catch (err) {
       console.warn('mic unavailable:', err);
       ui.showMicDenied();
@@ -59,6 +60,7 @@ async function handleMicPress() {
     micMuted = !micMuted;
     voice.setMuted(micMuted);
     ui.setMicOn(!micMuted);
+    ui.setMicPrompt(!micMuted);
   }
 }
 
@@ -244,7 +246,10 @@ function setMode(m) {
   ui.setMode(m);
   ui.setHint(HINTS[m] ?? null);
   ui.setHud(null);
-  if (m === 'play' && score > 0) {
+  // the mic prompt is a Play-mode thing — show it only in Play while the mic is live
+  const micLive = m === 'play' && voice.active && !micMuted;
+  ui.setMicPrompt(micLive);
+  if (m === 'play' && (score > 0 || micLive)) {
     ui.setHint(null);
     updateScoreHud();
   }

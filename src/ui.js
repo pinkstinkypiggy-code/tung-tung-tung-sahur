@@ -188,8 +188,12 @@ export function setupUI({ onShopOpen, onWeaponPick, onMicPress, onDirty, onSpong
 
     setMicOn(on) {
       btnMic.classList.toggle('muted', !on);
-      micIcon.textContent = on ? '🎤' : '🔇';
+      micIcon.textContent = '🎤'; // always a microphone; dimmed when off
       btnMic.setAttribute('aria-label', on ? 'Mute microphone' : 'Enable microphone');
+    },
+
+    setMicPrompt(show) {
+      $('mic-prompt').hidden = !show;
     },
 
     showMicDenied() {
