@@ -1,7 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import { createScene } from './scene.js';
-import { createCharacter } from './character.js';
+import { createCharacter, buildPlaceholder } from './character.js';
 import { VoiceLoop } from './voice.js';
 import { SFX } from './sfx.js';
 import { setupUI } from './ui.js';
@@ -550,7 +550,19 @@ canvas.addEventListener('touchend', (e) => e.preventDefault(), { passive: false 
 // ---------------------------------------------------------------------------
 // boot
 // ---------------------------------------------------------------------------
+// Instant stand-in so the stage is never empty while the model streams in.
+let placeholder = buildPlaceholder();
+scene.add(placeholder);
+
 createCharacter(scene).then((c) => {
+  if (placeholder) {
+    scene.remove(placeholder);
+    placeholder.traverse((o) => {
+      o.geometry?.dispose();
+      o.material?.dispose();
+    });
+    placeholder = null;
+  }
   character = c;
   c.onEvent = (ev) => {
     if (ev === 'thud') {
@@ -587,6 +599,10 @@ function tick() {
   if (character) {
     character.setTalkAmplitude(voice.getPlaybackLevel());
     character.update(dt, t);
+  } else if (placeholder) {
+    // gentle idle so the stand-in feels alive during load
+    placeholder.position.y = Math.sin(t * 2.1) * 0.03;
+    placeholder.rotation.y = Math.sin(t * 0.9) * 0.15;
   }
 
   // mode upkeep

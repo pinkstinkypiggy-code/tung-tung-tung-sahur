@@ -26,6 +26,14 @@ const BAT2_RADIUS = 0.31;
 const damp = (cur, target, k, dt) => cur + (target - cur) * (1 - Math.exp(-k * dt));
 const smooth = (q) => q * q * (3 - 2 * q);
 
+// Instant stand-in shown while the 3 MB GLB downloads, so the stage is never
+// empty on a slow phone/TikTok connection. Swapped out once the real model loads.
+export function buildPlaceholder() {
+  const { model } = buildProceduralCharacter();
+  model.rotation.z = 0; // arms rest naturally without a weapon
+  return model;
+}
+
 export async function createCharacter(scene) {
   let model = null;
   let parts = null;
