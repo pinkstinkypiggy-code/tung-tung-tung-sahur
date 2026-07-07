@@ -304,7 +304,7 @@ canvas#game {
 /* ================= mic prompt bubble (over Tung) ================= */
 .mic-prompt {
   position: absolute;
-  top: 40%;
+  top: 62%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -326,16 +326,16 @@ canvas#game {
   animation: micfloat 2.2s ease-in-out infinite;
 }
 .mic-prompt[hidden] { display: none; }
-/* little speech-bubble tail pointing down at Tung */
+/* little speech-bubble tail pointing up toward Tung's body */
 .mic-prompt::after {
   content: '';
   position: absolute;
-  bottom: -13px;
+  top: -13px;
   left: 50%;
   transform: translateX(-50%);
   border-left: 11px solid transparent;
   border-right: 11px solid transparent;
-  border-top: 14px solid var(--ink);
+  border-bottom: 14px solid var(--ink);
 }
 .mic-prompt-icon {
   font-size: 26px;
