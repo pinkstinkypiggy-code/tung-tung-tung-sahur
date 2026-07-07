@@ -1,7 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import { createScene } from './scene.js';
-import { createCharacter, buildPlaceholder } from './character.js';
+import { createCharacter } from './character.js';
 import { VoiceLoop } from './voice.js';
 import { SFX } from './sfx.js';
 import { setupUI } from './ui.js';
@@ -550,20 +550,19 @@ canvas.addEventListener('touchend', (e) => e.preventDefault(), { passive: false 
 // ---------------------------------------------------------------------------
 // boot
 // ---------------------------------------------------------------------------
-// Instant stand-in so the stage is never empty while the model streams in.
-let placeholder = buildPlaceholder();
-scene.add(placeholder);
+// A clean loading spinner (only appears if the model takes more than a blink
+// to load) instead of an ugly stand-in character, then Tung pops in smoothly.
+const loaderEl = document.getElementById('loading');
+const loaderTimer = setTimeout(() => loaderEl?.classList.add('show'), 150);
+let intro = -1; // <0 = not started; 0..1 = pop-in animation progress
 
 createCharacter(scene).then((c) => {
-  if (placeholder) {
-    scene.remove(placeholder);
-    placeholder.traverse((o) => {
-      o.geometry?.dispose();
-      o.material?.dispose();
-    });
-    placeholder = null;
-  }
+  clearTimeout(loaderTimer);
+  loaderEl?.classList.add('gone');
+  setTimeout(() => loaderEl?.remove(), 450);
   character = c;
+  c.root.scale.setScalar(0.001); // start tiny, grow in
+  intro = 0;
   c.onEvent = (ev) => {
     if (ev === 'thud') {
       sfx.thud();
@@ -597,12 +596,15 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (character) {
+    if (intro >= 0 && intro < 1) {
+      // elastic pop-in reveal (easeOutBack)
+      intro = Math.min(1, intro + dt * 2.6);
+      const x = intro, c1 = 1.70158, c3 = c1 + 1;
+      const s = 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+      character.root.scale.setScalar(Math.max(0.001, s));
+    }
     character.setTalkAmplitude(voice.getPlaybackLevel());
     character.update(dt, t);
-  } else if (placeholder) {
-    // gentle idle so the stand-in feels alive during load
-    placeholder.position.y = Math.sin(t * 2.1) * 0.03;
-    placeholder.rotation.y = Math.sin(t * 0.9) * 0.15;
   }
 
   // mode upkeep

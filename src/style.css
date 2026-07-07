@@ -127,6 +127,30 @@ canvas#game {
   display: block;
 }
 
+/* loading spinner — hidden by default; JS fades it in only if the model
+   takes more than a blink, so fast/cached loads never flash anything */
+#loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+#loading.show { opacity: 1; }
+#loading.gone { opacity: 0; }
+.load-drum {
+  font-size: 54px;
+  animation: loadbounce .65s cubic-bezier(.5, 0, .5, 1) infinite;
+  filter: drop-shadow(0 8px 10px rgba(40, 10, 60, .4));
+}
+@keyframes loadbounce {
+  0%, 100% { transform: translateY(6px) scale(1.05, .92); }
+  45% { transform: translateY(-22px) scale(.94, 1.08) rotate(8deg); }
+}
+
 /* ================= top bar: title + mode chips ================= */
 .topbar {
   position: absolute;
