@@ -10,9 +10,9 @@ export function createScene(canvas) {
   // Camera slightly above eye level, looking down a touch (Talking-Tom-style framing)
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
   camera.position.set(0, 2.1, 4.6);
-  // aim above the character so he sits in the lower 2/3 of the screen,
-  // clear of the title / mode chips / hint band at the top
-  const lookTarget = new THREE.Vector3(0, 1.62, 0);
+  // Aim lower so the character floats up in the frame: his head clears the top
+  // UI band and his FEET sit above the bottom button row — whole body pokeable.
+  const lookTarget = new THREE.Vector3(0, 1.2, 0);
   camera.lookAt(lookTarget);
 
   // Lighting: warm hemisphere ambient + one key directional
@@ -59,19 +59,32 @@ export function createScene(canvas) {
   scene.add(shadow);
 
   function resize() {
-    const w = canvas.clientWidth || window.innerWidth;
-    const h = canvas.clientHeight || window.innerHeight;
+    // Use the canvas's ACTUAL displayed box so the render-buffer aspect always
+    // matches the display — otherwise Safari stretches the buffer and the
+    // character looks squished/thin. Skip until the element is laid out.
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // Pull back on narrow screens so the character fits with breathing room for the UI
-    const fovRad = (camera.fov * Math.PI) / 180;
-    const fitDist = 1.95 / (2 * Math.tan(fovRad / 2) * camera.aspect);
-    camera.position.z = Math.max(4.6, fitDist);
+    // Frame by the VERTICAL field of view (constant across aspect ratios), so
+    // the ~2.2-tall character always occupies the middle ~53% of the screen
+    // (feet ~79%, head ~26%) — stably above the bottom buttons and below the
+    // top UI on every phone. Also pull back on ultra-narrow screens so his arms
+    // never clip horizontally.
+    const t = Math.tan((camera.fov * Math.PI) / 180 / 2);
+    const distV = 2.08 / t;
+    const distH = 0.66 / (t * camera.aspect);
+    camera.position.z = Math.max(distV, distH);
     camera.lookAt(lookTarget);
     camera.updateProjectionMatrix();
   }
   resize();
+  // ResizeObserver is the reliable signal on mobile (fires on URL-bar show/hide,
+  // rotation, and every layout change) with the true box size.
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(canvas);
   window.addEventListener('resize', resize);
+  window.visualViewport?.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 300));
 
   return { scene, camera, renderer, shadow };
