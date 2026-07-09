@@ -561,7 +561,14 @@ const loaderEl = document.getElementById('loading');
 const loaderTimer = setTimeout(() => loaderEl?.classList.add('show'), 150);
 let intro = -1; // <0 = not started; 0..1 = pop-in animation progress
 
-createCharacter(scene).then((c) => {
+createCharacter(scene)
+  .catch((err) => {
+    // GLB path died (hung fetch, parse error, device quirk) — the game must
+    // still boot, so retry with the built-in character.
+    console.error('[boot] character load failed, using built-in fallback:', err);
+    return createCharacter(scene, { procedural: true });
+  })
+  .then((c) => {
   clearTimeout(loaderTimer);
   loaderEl?.classList.add('gone');
   setTimeout(() => loaderEl?.remove(), 450);
@@ -590,7 +597,14 @@ createCharacter(scene).then((c) => {
     getTargetMesh: () => targetMesh,
     wash: { spawnTrash, updateTrash, trash: fallingTrash },
   };
-});
+})
+  .catch((err) => {
+    // even the fallback died — don't strand the player on the spinner
+    console.error('[boot] fatal:', err);
+    clearTimeout(loaderTimer);
+    loaderEl?.remove();
+    ui.setHint('😵 Something broke — pull to refresh!');
+  });
 
 refreshCombosPanel();
 

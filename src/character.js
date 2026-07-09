@@ -26,17 +26,25 @@ const BAT2_RADIUS = 0.31;
 const damp = (cur, target, k, dt) => cur + (target - cur) * (1 - Math.exp(-k * dt));
 const smooth = (q) => q * q * (3 - 2 * q);
 
-export async function createCharacter(scene) {
+export async function createCharacter(scene, { procedural = false } = {}) {
   let model = null;
   let parts = null;
   let mixer = null;
   let glbMesh = null;
 
   try {
+    if (procedural) throw new Error('procedural fallback requested');
     // Load the GLB directly (no HEAD pre-check — iOS Safari can hang on HEAD
     // requests, which left mobile stuck on the placeholder). If the URL 404s or
     // returns HTML, loadAsync throws and we fall back to the built-in character.
-    const gltf = await new GLTFLoader().loadAsync(GLB_URL);
+    // The timeout guards against fetches that hang without erroring (seen on
+    // iOS Safari) — a stuck load must not strand the player on the spinner.
+    const gltf = await Promise.race([
+      new GLTFLoader().loadAsync(GLB_URL),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('GLB load timed out')), 12000)
+      ),
+    ]);
     const candidate = gltf.scene;
     // Sanity check: make sure it actually contains a renderable mesh.
     let hasMesh = false;
@@ -81,7 +89,10 @@ export async function createCharacter(scene) {
   const charH = bounds.max.y - bounds.min.y;
 
   // ---- baked-in bat show/hide (GLB only): swap between two index buffers ----
+  // Guarded: if the surgery fails on some device, the bat just stays visible —
+  // it must never take down the whole character boot.
   let setBatVisible = () => {};
+  try {
   if (glbMesh && glbMesh.geometry.index) {
     const geo = glbMesh.geometry;
     const posA = geo.attributes.position;
@@ -115,6 +126,10 @@ export async function createCharacter(scene) {
     const fullAttr = geo.index;
     const noBatAttr = new THREE.BufferAttribute(new IndexArray(kept), 1);
     setBatVisible = (show) => geo.setIndex(show ? fullAttr : noBatAttr);
+  }
+  } catch (e) {
+    console.warn('[character] bat surgery failed, keeping bat visible:', e?.message || e);
+    setBatVisible = () => {};
   }
 
   // ---- weapons: grip at origin, extending +y ----
